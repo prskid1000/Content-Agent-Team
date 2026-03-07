@@ -136,17 +136,7 @@
       "name": "Edit Fields"
     }
   ],
-  "pinData": {
-    "When Executed by Another Workflow": [
-      {
-        "json": {
-          "editDescription": null,
-          "imageUrl": "https://drive.google.com/uc?id=1_w71brA8WJxG3AysWkcszDtiLb_TT2DP&export=download",
-          "aspectRatio": "1:1"
-        }
-      }
-    ]
-  },
+  "pinData": {},
   "connections": {
     "When Executed by Another Workflow": {
       "main": [

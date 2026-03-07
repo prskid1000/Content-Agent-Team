@@ -1,0 +1,232 @@
+{
+  "name": "T2M",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n    \"soundDescription\": \"\",\n    \"duration\": \"\"\n}"
+      },
+      "id": "4339e40a-aba4-4fb7-81b0-3a865f10a185",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "comfyUiUrl": "http://host.docker.internal:8188",
+        "workflowJson": "{\n  \"3\": {\n    \"inputs\": {\n      \"seed\": 99011557370801,\n      \"steps\": 50,\n      \"cfg\": 5,\n      \"sampler_name\": \"dpmpp_3m_sde_gpu\",\n      \"scheduler\": \"exponential\",\n      \"denoise\": 1,\n      \"model\": [\n        \"4\",\n        0\n      ],\n      \"positive\": [\n        \"6\",\n        0\n      ],\n      \"negative\": [\n        \"7\",\n        0\n      ],\n      \"latent_image\": [\n        \"11\",\n        0\n      ]\n    },\n    \"class_type\": \"KSampler\",\n    \"_meta\": {\n      \"title\": \"KSampler\"\n    }\n  },\n  \"4\": {\n    \"inputs\": {\n      \"ckpt_name\": \"stable-audio-open-1.0.safetensors\"\n    },\n    \"class_type\": \"CheckpointLoaderSimple\",\n    \"_meta\": {\n      \"title\": \"Load Checkpoint\"\n    }\n  },\n  \"6\": {\n    \"inputs\": {\n      \"text\": \"Fireplace crackling\\n\",\n      \"clip\": [\n        \"10\",\n        0\n      ]\n    },\n    \"class_type\": \"CLIPTextEncode\",\n    \"_meta\": {\n      \"title\": \"CLIP Text Encode (Prompt)\"\n    }\n  },\n  \"7\": {\n    \"inputs\": {\n      \"text\": \"rain\",\n      \"clip\": [\n        \"10\",\n        0\n      ]\n    },\n    \"class_type\": \"CLIPTextEncode\",\n    \"_meta\": {\n      \"title\": \"CLIP Text Encode (Prompt)\"\n    }\n  },\n  \"10\": {\n    \"inputs\": {\n      \"clip_name\": \"t5-base.safetensors\",\n      \"type\": \"stable_audio\",\n      \"device\": \"default\"\n    },\n    \"class_type\": \"CLIPLoader\",\n    \"_meta\": {\n      \"title\": \"Load CLIP\"\n    }\n  },\n  \"11\": {\n    \"inputs\": {\n      \"seconds\": 15,\n      \"batch_size\": 1\n    },\n    \"class_type\": \"EmptyLatentAudio\",\n    \"_meta\": {\n      \"title\": \"EmptyLatentAudio\"\n    }\n  },\n  \"12\": {\n    \"inputs\": {\n      \"samples\": [\n        \"3\",\n        0\n      ],\n      \"vae\": [\n        \"4\",\n        2\n      ]\n    },\n    \"class_type\": \"VAEDecodeAudio\",\n    \"_meta\": {\n      \"title\": \"VAEDecodeAudio\"\n    }\n  },\n  \"13\": {\n    \"inputs\": {\n      \"filename_prefix\": \"audio/sfx/sfx_\",\n      \"audioUI\": \"/api/view?filename=sfx__00001_.flac&type=output&subfolder=audio\\\\sfx&rand=0.82008587675509\",\n      \"audio\": [\n        \"12\",\n        0\n      ]\n    },\n    \"class_type\": \"SaveAudio\",\n    \"_meta\": {\n      \"title\": \"SaveAudio\"\n    }\n  }\n}",
+        "nodeParameters": {
+          "nodeParameter": [
+            {
+              "nodeId": "6",
+              "paramName": "text",
+              "value": "={{ $json.soundDescription }}"
+            },
+            {
+              "nodeId": "11",
+              "paramName": "seconds",
+              "type": "number",
+              "numberValue": "={{ $json.duration }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-comfyui-all.comfyUi",
+      "typeVersion": 1,
+      "position": [
+        448,
+        352
+      ],
+      "id": "154849c5-341b-4d4d-8a6b-f33b2a94014d",
+      "name": "ComfyUI",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "name": "={{ $now.toMillis() }}.flac",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1pq_QD320b1IgdH_SWjg1sbizcKBZ5w95",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1pq_QD320b1IgdH_SWjg1sbizcKBZ5w95"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        768,
+        352
+      ],
+      "id": "41d022f2-8632-41c6-8751-0fd72db4e90e",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "JT66tyjz24e3EVsx",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "writer",
+            "type": "anyone",
+            "allowFileDiscovery": true
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        912,
+        352
+      ],
+      "id": "586801b5-1464-4d26-8f48-67ea1574c914",
+      "name": "Share file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "JT66tyjz24e3EVsx",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3d5f98c-4573-457a-a97a-1fac23e3449e",
+              "name": "imageUrl",
+              "value": "={{ $('Upload file').item.json.webContentLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1088,
+        352
+      ],
+      "id": "b8cf515d-f80d-46cf-9548-52b5dcb679bb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8188/api/view?filename={{$json.data['13'].audio[0].filename}}&type=output&subfolder={{ $json.data['13'].audio[0].subfolder }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        608,
+        352
+      ],
+      "id": "c7b309a3-9227-4e83-92f1-35c26d195aec",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "soundDescription": "rain",
+          "duration": 10
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "ComfyUI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ComfyUI": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Share file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Share file": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate"
+  },
+  "versionId": "398caa30-82f2-49b9-aa16-07ec92199907",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"
+  },
+  "id": "T0SaqSpmSpuk4ntc",
+  "tags": []
+}
