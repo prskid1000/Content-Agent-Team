@@ -1,0 +1,110 @@
+{
+  "name": "I2T",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n    \"imageDownloadUrl\": \"\",\n    \"instructionForAnalysis\": \"\"\n}"
+      },
+      "id": "fd95caf3-32a7-43b0-9f4f-c7d4ab275d65",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "qwen3.5-0.8b",
+          "mode": "id"
+        },
+        "text": "={{ $json.instructionForAnalysis }}",
+        "imageUrls": "={{ $json.imageDownloadUrl }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        544,
+        352
+      ],
+      "id": "13d3a995-26b7-4639-8d53-0116f72365b1",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "HpAJ5EBZHz4QQwoG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5fcae359-aea4-4691-9ca6-4bf61bd94281",
+              "name": "analysis",
+              "value": "={{ $json['0'].content[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        352
+      ],
+      "id": "5bc100ae-8827-481c-b4e3-035ccce750c1",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate"
+  },
+  "versionId": "d0aa01c8-44c0-4dbb-8b9f-a63779123669",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"
+  },
+  "id": "kG9cHLYGgDkYsLTY",
+  "tags": []
+}

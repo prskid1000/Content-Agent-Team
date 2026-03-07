@@ -1,0 +1,196 @@
+{
+  "name": "T2I",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n    \"imageDescription\": \"\",\n    \"aspectRatio\": \"\"\n}"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "comfyUiUrl": "http://host.docker.internal:8188",
+        "workflowJson": "{\n  \"10\": {\n    \"inputs\": {\n      \"clip_name1\": \"t5xxl_fp8_e4m3fn.safetensors\",\n      \"clip_name2\": \"clip_l.safetensors\",\n      \"type\": \"flux\",\n      \"device\": \"default\"\n    },\n    \"class_type\": \"DualCLIPLoader\",\n    \"_meta\": {\n      \"title\": \"DualCLIPLoader\"\n    }\n  },\n  \"11\": {\n    \"inputs\": {\n      \"vae_name\": \"flux_kontext_vae.safetensors\"\n    },\n    \"class_type\": \"VAELoader\",\n    \"_meta\": {\n      \"title\": \"Load VAE\"\n    }\n  },\n  \"16\": {\n    \"inputs\": {\n      \"seed\": 981963828965404,\n      \"steps\": 8,\n      \"cfg\": 1,\n      \"sampler_name\": \"euler\",\n      \"scheduler\": \"beta\",\n      \"denoise\": 1,\n      \"model\": [\n        \"48\",\n        0\n      ],\n      \"positive\": [\n        \"33\",\n        0\n      ],\n      \"negative\": [\n        \"34\",\n        0\n      ],\n      \"latent_image\": [\n        \"19\",\n        0\n      ]\n    },\n    \"class_type\": \"KSampler\",\n    \"_meta\": {\n      \"title\": \"KSampler\"\n    }\n  },\n  \"19\": {\n    \"inputs\": {\n      \"width\": [\n        \"23\",\n        0\n      ],\n      \"height\": [\n        \"23\",\n        1\n      ],\n      \"batch_size\": 1\n    },\n    \"class_type\": \"EmptySD3LatentImage\",\n    \"_meta\": {\n      \"title\": \"EmptySD3LatentImage\"\n    }\n  },\n  \"20\": {\n    \"inputs\": {\n      \"samples\": [\n        \"16\",\n        0\n      ],\n      \"vae\": [\n        \"11\",\n        0\n      ]\n    },\n    \"class_type\": \"VAEDecode\",\n    \"_meta\": {\n      \"title\": \"VAE Decode\"\n    }\n  },\n  \"21\": {\n    \"inputs\": {\n      \"filename_prefix\": \"ComfyUI\",\n      \"images\": [\n        \"20\",\n        0\n      ]\n    },\n    \"class_type\": \"SaveImage\",\n    \"_meta\": {\n      \"title\": \"Output\"\n    }\n  },\n  \"23\": {\n    \"inputs\": {\n      \"megapixel\": \"0.3\",\n      \"aspect_ratio\": \"16:9 (Panorama)\",\n      \"divisible_by\": \"64\",\n      \"custom_ratio\": true,\n      \"custom_aspect_ratio\": \"1:1\"\n    },\n    \"class_type\": \"FluxResolutionNode\",\n    \"_meta\": {\n      \"title\": \"Flux Resolution Calc\"\n    }\n  },\n  \"33\": {\n    \"inputs\": {\n      \"text\": \"Ghibli Art.\\n\\na full body + leg + hands + face not cropped & visible image of male  old teenager\",\n      \"clip\": [\n        \"48\",\n        1\n      ]\n    },\n    \"class_type\": \"CLIPTextEncode\",\n    \"_meta\": {\n      \"title\": \"CLIP Text Encode (Prompt)\"\n    }\n  },\n  \"34\": {\n    \"inputs\": {\n      \"conditioning\": [\n        \"33\",\n        0\n      ]\n    },\n    \"class_type\": \"ConditioningZeroOut\",\n    \"_meta\": {\n      \"title\": \"ConditioningZeroOut\"\n    }\n  },\n  \"43\": {\n    \"inputs\": {\n      \"unet_name\": \"flux1-kontext-dev-Q8_0.gguf\"\n    },\n    \"class_type\": \"UnetLoaderGGUF\",\n    \"_meta\": {\n      \"title\": \"Unet Loader (GGUF)\"\n    }\n  },\n  \"48\": {\n    \"inputs\": {\n      \"lora_name\": \"FLUX.1-Turbo-Alpha.safetensors\",\n      \"strength_model\": 1,\n      \"strength_clip\": 1,\n      \"model\": [\n        \"43\",\n        0\n      ],\n      \"clip\": [\n        \"10\",\n        0\n      ]\n    },\n    \"class_type\": \"LoraLoader\",\n    \"_meta\": {\n      \"title\": \"Load LoRA (Model and CLIP)\"\n    }\n  }\n}\n",
+        "nodeParameters": {
+          "nodeParameter": [
+            {
+              "nodeId": "33",
+              "paramName": "text",
+              "value": "={{ $json.imageDescription }}"
+            },
+            {
+              "nodeId": "23",
+              "paramName": "custom_aspect_ratio",
+              "value": "={{ $json.aspectRatio != null ? $json.aspectRatio : \"1:1\" }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-comfyui-all.comfyUi",
+      "typeVersion": 1,
+      "position": [
+        496,
+        352
+      ],
+      "id": "67d908b2-b93c-482c-9515-d127dee07149",
+      "name": "ComfyUI"
+    },
+    {
+      "parameters": {
+        "name": "={{ $now.toMillis() }}.png",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1pq_QD320b1IgdH_SWjg1sbizcKBZ5w95",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1pq_QD320b1IgdH_SWjg1sbizcKBZ5w95"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        704,
+        352
+      ],
+      "id": "a2661bd0-5f94-4355-819b-f69e14748cd1",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "JT66tyjz24e3EVsx",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "writer",
+            "type": "anyone",
+            "allowFileDiscovery": true
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        912,
+        352
+      ],
+      "id": "dc2c2965-9a9c-4ac0-914a-1217ec158de3",
+      "name": "Share file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "JT66tyjz24e3EVsx",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3d5f98c-4573-457a-a97a-1fac23e3449e",
+              "name": "imageUrl",
+              "value": "={{ $('Upload file').item.json.webContentLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        352
+      ],
+      "id": "93dfba46-b109-42ad-b70d-a5e749db225c",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "ComfyUI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ComfyUI": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Share file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Share file": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate"
+  },
+  "versionId": "5177c731-fded-463a-b881-bba67f1c0d22",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"
+  },
+  "id": "9NAKUkipFgpH3Ovw",
+  "tags": []
+}
