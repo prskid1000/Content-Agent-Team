@@ -1,0 +1,138 @@
+{
+  "name": "S2T",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n    \"audioDownloadUrl\": \"\"\n}"
+      },
+      "id": "9606e7a8-512b-429c-8b47-97a74fc354d9",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        336,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "comfyUiUrl": "http://host.docker.internal:8188",
+        "workflowJson": "{\n  \"1\": {\n    \"inputs\": {\n      \"model\": \"tiny.en\",\n      \"language\": \"auto\",\n      \"prompt\": \"\",\n      \"audio\": [\n        \"3\",\n        0\n      ]\n    },\n    \"class_type\": \"Apply Whisper\",\n    \"_meta\": {\n      \"title\": \"Apply Whisper\"\n    }\n  },\n  \"3\": {\n    \"inputs\": {\n      \"url\": \"https://drive.google.com/uc?id=1fYyFmePIPCwP8WSlyW821mRh0dN_PV7P&export=download\"\n    },\n    \"class_type\": \"MediaUtilities_AudioURLLoader\",\n    \"_meta\": {\n      \"title\": \"MediaUtilities_AudioURLLoader\"\n    }\n  },\n  \"6\": {\n    \"inputs\": {\n      \"preview\": \"hmm hello hmm\",\n      \"previewMode\": false,\n      \"source\": [\n        \"1\",\n        0\n      ]\n    },\n    \"class_type\": \"PreviewAny\",\n    \"_meta\": {\n      \"title\": \"Preview as Text\"\n    }\n  },\n  \"7\": {\n    \"inputs\": {\n      \"preview\": \"[\\n    {\\n        \\\"value\\\": \\\"hmm hello hmm\\\",\\n        \\\"start\\\": 0.0,\\n        \\\"end\\\": 1.62\\n    }\\n]\",\n      \"previewMode\": false,\n      \"source\": [\n        \"1\",\n        1\n      ]\n    },\n    \"class_type\": \"PreviewAny\",\n    \"_meta\": {\n      \"title\": \"Preview as Text\"\n    }\n  },\n  \"8\": {\n    \"inputs\": {\n      \"preview\": \"[\\n    {\\n        \\\"value\\\": \\\"hmm\\\",\\n        \\\"start\\\": 0.0,\\n        \\\"end\\\": 0.6\\n    },\\n    {\\n        \\\"value\\\": \\\"hello\\\",\\n        \\\"start\\\": 0.6,\\n        \\\"end\\\": 1.08\\n    },\\n    {\\n        \\\"value\\\": \\\"hmm\\\",\\n        \\\"start\\\": 1.08,\\n        \\\"end\\\": 1.62\\n    }\\n]\",\n      \"previewMode\": false,\n      \"source\": [\n        \"1\",\n        2\n      ]\n    },\n    \"class_type\": \"PreviewAny\",\n    \"_meta\": {\n      \"title\": \"Preview as Text\"\n    }\n  }\n}",
+        "nodeParameters": {
+          "nodeParameter": [
+            {
+              "nodeId": "3",
+              "paramName": "url",
+              "value": "={{ $json.audioDownloadUrl }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-comfyui-all.comfyUi",
+      "typeVersion": 1,
+      "position": [
+        560,
+        512
+      ],
+      "id": "39dbe49f-dc32-47bc-bcf7-57a883b2aa09",
+      "name": "ComfyUI"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9f704b86-476b-4064-b695-bf4c8bd13513",
+              "name": "data",
+              "value": "={{ JSON.parse($json.data['8'].text[0])}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        512
+      ],
+      "id": "a7f9c6b8-042c-41b2-adb8-cf25a20d7930",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "result = []\n\nfor item in _items:\n    for segment in item[\"json\"][\"data\"]:\n        value = segment[\"value\"]\n        start = segment[\"start\"]\n        end = segment[\"end\"]\n\n        duration_str = str(start) + \"-\" + str(end)\n        \n        result.append({\n            \"json\": {\n                duration_str: value.strip()\n            }\n        })\n\nreturn result"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        512
+      ],
+      "id": "7f5f894b-4704-4faf-ae23-1dd03a0fd17f",
+      "name": "Code in Python"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "audioDownloadUrl": "https://drive.google.com/uc?id=1fYyFmePIPCwP8WSlyW821mRh0dN_PV7P&export=download"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "ComfyUI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ComfyUI": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in Python",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate"
+  },
+  "versionId": "c7620a7d-21dc-4269-928d-b72f7a53b210",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"
+  },
+  "id": "4Q6VRlcGeptrdeKb",
+  "tags": []
+}
