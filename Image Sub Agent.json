@@ -1,0 +1,395 @@
+{
+  "name": "Image Sub Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messageToImageAgent }}",
+        "options": {
+          "systemMessage": "You are an advanced AI Image Operations Agent capable of creating, editing, and analysing images using a suite of specialised tools. Your job is to understand the user's intent and execute the right sequence of image operations to perfectly fulfil their request.\n---\n## 📋 BEHAVIOUR RULES\n\n1. **Always analyse after generating/editing**: After every T2I, I2I, or 2xI2I call, immediately call I2T to verify the result matches user requirements. If it does not match, iterate and try again with improved instructions.\n\n2. **Ask before assuming**: If the user's request is ambiguous (e.g. they say \"fix my image\" without specifying how), ask one clarifying question before proceeding.\n\n3. **Iterate until perfect**: Keep refining with improved prompts until the output satisfies the user. Maximum 3 iterations before asking the user for further guidance.\n\n4. **Describe your steps**: Briefly tell the user what you are about to do before calling a tool (e.g. \"I'll generate a 16:9 image of your description now...\").\n\n5. **Share the result**: After a successful operation, present the image download URL clearly and summarise what was done.\n\n6. **Aspect ratio defaults**:\n   - Portrait content (people, mobile wallpapers) → 9:16\n   - Landscape content (scenes, banners) → 16:9\n   - Social media/profile / general → 1:1\n   - If the user specifies dimensions, map to the nearest ratio.\n\n7. **Never fabricate URLs**: Only use image URLs returned directly by tools. Never invent or guess URLs.",
+          "passthroughBinaryImages": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        128,
+        -464
+      ],
+      "id": "00623dc7-b2db-4677-a9ca-c4ac492707a5",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "qwen3.5-0.8b",
+          "mode": "list",
+          "cachedResultName": "qwen3.5-0.8b"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        -320
+      ],
+      "id": "77a73d05-bb6f-41e8-ba82-f936127be3d7",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "HpAJ5EBZHz4QQwoG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to ANALYSE an existing image and extract information from it.\n- Use when: User wants to understand what's in an image, describe it, check if edits were applied correctly, or verify quality.\n- Always use this AFTER generating/editing an image to confirm it meets user requirements.\n- Inputs:\n  - imageDownloadUrl: The direct download URL of the image to analyse\n  - instructionForAnalysis: Specific instruction on what to look for or describe (e.g. \"Describe the image in detail\", \"Check if the background is removed\", \"Is the style cartoon-like?\")",
+        "workflowId": {
+          "__rl": true,
+          "value": "kG9cHLYGgDkYsLTY",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/kG9cHLYGgDkYsLTY",
+          "cachedResultName": "I2T"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "imageDownloadUrl": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('imageDownloadUrl', ``, 'string') }}",
+            "instructionForAnalysis": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('instructionForAnalysis', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "input"
+          ],
+          "schema": [
+            {
+              "id": "imageDownloadUrl",
+              "displayName": "imageDownloadUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "instructionForAnalysis",
+              "displayName": "instructionForAnalysis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        -304
+      ],
+      "id": "5105b777-9cfb-4cae-9454-252c5d15aed7",
+      "name": "Call 'I2T'"
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to CREATE a brand new image from a text description.\n- Use when: User wants to generate an image from scratch with no reference image.\n- Inputs:\n  - imageDescription: A detailed description of the image to generate (e.g. \"A futuristic cityscape at night with neon lights and flying cars, cinematic lighting\")\n  - aspectRatio: The aspect ratio for the image. Use exactly one of: 1:1, 16:9, 9:16, 4:3, 3:4. Default to 1:1 if not specified.",
+        "workflowId": {
+          "__rl": true,
+          "value": "9NAKUkipFgpH3Ovw",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/9NAKUkipFgpH3Ovw",
+          "cachedResultName": "T2I"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "imageDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('imageDescription', ``, 'string') }}",
+            "aspectRatio": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('aspectRatio', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "input"
+          ],
+          "schema": [
+            {
+              "id": "imageDescription",
+              "displayName": "imageDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "aspectRatio",
+              "displayName": "aspectRatio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        -304
+      ],
+      "id": "ec05fcc3-fd94-40de-b8b1-f70fedd8c887",
+      "name": "Call 'T2I'"
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to EDIT or TRANSFORM a single existing image based on instructions.\n- Use when: User wants to modify one image — change style, add/remove elements, recolour, upscale concept, background changes, etc.\n- Inputs:\n  - imageUrl: The direct download URL of the source image to edit\n  - editDescription: Detailed description of what changes to make OR what the new image should look like (e.g. \"Remove the background and replace with a white studio backdrop\", \"Convert to anime style\", \"Add a sunset sky in the background\")\n  - aspectRatio: The aspect ratio for the output image. Use exactly one of: 1:1, 16:9, 9:16, 4:3, 3:4. Default to match original if not specified.",
+        "workflowId": {
+          "__rl": true,
+          "value": "JxnDca97cAYHRezx",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/JxnDca97cAYHRezx",
+          "cachedResultName": "I2I"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "editDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('editDescription', ``, 'string') }}",
+            "imageUrl": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('imageUrl', ``, 'string') }}",
+            "aspectRatio": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('aspectRatio', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "editDescription",
+              "displayName": "editDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "imageUrl",
+              "displayName": "imageUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "aspectRatio",
+              "displayName": "aspectRatio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        -304
+      ],
+      "id": "41f9b512-6db7-4dde-b955-2f03ce4d3553",
+      "name": "Call 'I2I'"
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to COMBINE or MERGE two reference images into a new single image.\n- Use when: User provides two images and wants them merged, blended, style-transferred between them, or used as dual references.\n- Inputs:\n  - imageUrlA: The direct download URL of the first reference image\n  - imageUrlB: The direct download URL of the second reference image\n  - editDescription: Detailed description of how to combine or what to create using both images (e.g. \"Merge person from image A into the background scene of image B\", \"Blend the styles of both images\", \"Put the product from image A on the table from image B\")\n  - aspectRatio: The aspect ratio for the output image. Use exactly one of: 1:1, 16:9, 9:16, 4:3, 3:4. Default to 1:1 if not specified.",
+        "workflowId": {
+          "__rl": true,
+          "value": "UGy2qbGOSu9N4uFb",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/UGy2qbGOSu9N4uFb",
+          "cachedResultName": "2xI2I"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "editDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('editDescription', ``, 'string') }}",
+            "imageUrlA": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('imageUrlA', ``, 'string') }}",
+            "imageUrlB": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('imageUrlB', ``, 'string') }}",
+            "aspectRatio": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('aspectRatio', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "editDescription",
+              "displayName": "editDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "imageUrlA",
+              "displayName": "imageUrlA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "imageUrlB",
+              "displayName": "imageUrlB",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "aspectRatio",
+              "displayName": "aspectRatio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        -304
+      ],
+      "id": "27d01b08-9f84-494e-a7c7-e7f11dfc24b1",
+      "name": "Call '2xI2I'"
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"messageToImageAgent\": \"\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        -464
+      ],
+      "id": "6d70ceed-c1cd-41dc-a5fd-a746696c2224",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Call 'I2T'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'T2I'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'I2I'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call '2xI2I'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4e75bc21-899b-4f3e-bc97-3f6143ba9772",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"
+  },
+  "id": "fGSM18EIWUKU5Oau",
+  "tags": []
+}

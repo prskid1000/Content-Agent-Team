@@ -1,0 +1,234 @@
+{
+  "name": "Media Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -112,
+        -496
+      ],
+      "id": "d3a12cab-ea15-4b65-8b2a-0ea51153bfc6",
+      "name": "When chat message received",
+      "webhookId": "2343b50b-160a-41be-a0ff-757a1fbd687a"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a Master Orchestration Agent that coordinates specialised sub-agents to fulfil complex creative media requests. You have access to two sub-agents: an Audio Sub Agent and an Image Sub Agent.\n\n---\n## 🧠 YOUR ROLE\nYou do NOT generate anything directly. You analyse the user's request, break it into tasks, and delegate each task to the correct sub-agent. You then collect all results and present them clearly to the user.\n\n---\n## 📋 ROUTING RULES\n\n1. **Identify what is needed**:\n   - Request involves speech, voiceover, music, sound effects, or audio transcription → delegate to Audio Sub Agent\n   - Request involves creating, editing, or analysing images or visuals → delegate to Image Sub Agent\n   - Request involves BOTH → delegate to both sub-agents, sequencing steps logically\n\n2. **Multi-step orchestration**:\n   - If a task depends on a previous result (e.g. \"generate an image of what was said in this audio\"), run S2T via Audio Sub Agent first, then pass the transcript to Image Sub Agent\n   - Always pass outputs from one sub-agent as inputs to the next when chaining\n   - Never ask the user for information that a sub-agent already returned\n\n3. **Before delegating**:\n   - Clarify any missing critical information with ONE question at a time\n   - Do not over-clarify — if the request is clear enough, proceed immediately\n\n4. **After receiving results**:\n   - Present all outputs clearly labelled by type (image, audio, transcript)\n   - Summarise what was produced in one short sentence\n   - Never fabricate or guess URLs or file paths — only share what sub-agents return\n\n5. **Error handling**:\n   - If a sub-agent fails or returns nothing, inform the user clearly and suggest a retry or alternative",
+          "passthroughBinaryImages": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        112,
+        -496
+      ],
+      "id": "8fbcd922-7ce3-4789-9cf6-facdbe7906a6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "qwen3.5-0.8b",
+          "mode": "list",
+          "cachedResultName": "qwen3.5-0.8b"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -96,
+        -288
+      ],
+      "id": "e90dd010-6b02-4a13-ad75-1dda5c84f39e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "HpAJ5EBZHz4QQwoG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        -288
+      ],
+      "id": "29c531a2-a7e9-41a2-b13d-4ebf01abe7c4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Delegates all audio-related tasks to the Audio Sub Agent.\nUse this tool for: generating speech (T2S), generating music or sound effects (T2M), or transcribing spoken audio (S2T).\nInput: a clear natural language instruction describing the audio task, including any relevant parameters such as script text, voice preference, music mood, duration, or audioDownloadUrl for transcription.\nReturns: audio download URL(s) for generated audio, or a word-level transcript array [{start_time-end_time: word}] for transcription.\nDo NOT use for anything image or visual related.",
+        "workflowId": {
+          "__rl": true,
+          "value": "vzrFrvMoqOdSKBhN",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/vzrFrvMoqOdSKBhN",
+          "cachedResultName": "Audio Sub Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "messageToAudioAgent": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('messageToAudioAgent', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "messageToAudioAgent"
+          ],
+          "schema": [
+            {
+              "id": "messageToAudioAgent",
+              "displayName": "messageToAudioAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        176,
+        -304
+      ],
+      "id": "cfa27ed7-1c2e-45fb-8510-5b2933b9e320",
+      "name": "Call 'Audio Sub Agent'"
+    },
+    {
+      "parameters": {
+        "description": "Delegates all image-related tasks to the Image Sub Agent.\nUse this tool for: generating images from text (T2I), analysing or describing images (I2T), editing an existing image (I2I), or combining two images (2xI2I).\nInput: a clear natural language instruction describing the image task, including any relevant parameters such as image description, aspect ratio, image URL(s) for editing or analysis, or verification instructions.\nReturns: image download URL(s) for generated or edited images, or a text description for image analysis.\nDo NOT use for anything audio, speech, or music related.",
+        "workflowId": {
+          "__rl": true,
+          "value": "fGSM18EIWUKU5Oau",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/fGSM18EIWUKU5Oau",
+          "cachedResultName": "Image Sub Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "messageToImageAgent": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('messageToImageAgent', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "messageToImageAgent"
+          ],
+          "schema": [
+            {
+              "id": "messageToImageAgent",
+              "displayName": "messageToImageAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        -304
+      ],
+      "id": "e4543355-049c-483b-a263-3ee4da52b940",
+      "name": "Call 'Image Sub Agent'"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Call 'Audio Sub Agent'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Image Sub Agent'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7eb0673a-2325-40cc-934c-47c70dedcc39",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"
+  },
+  "id": "8wyOUPavUTUq8YRF",
+  "tags": []
+}

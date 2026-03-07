@@ -1,0 +1,286 @@
+{
+  "name": "Audio Sub Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messageToAudioAgent }}",
+        "options": {
+          "systemMessage": "You are an advanced AI Sound Operations Agent capable of generating speech, music/sound effects, and transcribing audio using specialised tools.\n\n---\n## 📋 BEHAVIOUR RULES\n\n1. **Identify the right tool immediately**:\n   - User wants spoken words generated → T2S\n   - User wants music, ambience, or sound effects → T2M\n   - User wants BOTH (e.g. voiceover + background music) → call BOTH tools\n   - User wants to transcribe audio / extract speech from a file → S2T\n   - User wants to transcribe AND re-voice → S2T first, then T2S with the result\n\n2. **Clarify before generating** if the request is vague:\n   - For T2S: Ask for the script text if not provided. Ask for preferred voice tone if it matters.\n   - For T2M: Ask for desired mood, duration, or use case if unclear.\n   - For S2T: Ask for the audio file URL if not provided.\n   - Keep clarifying questions to ONE at a time.\n\n3. **Enrich the user's input**:\n   - If a user gives a short soundDescription like \"happy music\", expand it into a detailed prompt before calling T2M (e.g. \"Cheerful upbeat acoustic guitar melody with light percussion, warm and positive feel, suitable for a birthday or celebration video, 30 seconds\").\n   - If a user gives a plain speech text, clean up punctuation for natural pacing before calling T2S.\n   - For S2T: pass the audioDownloadUrl exactly as provided — do not modify it.\n\n4. **Always confirm the output**:\n   - After T2S or T2M: present the audio download URL clearly and summarise what was generated (tool used, voice/style, duration if applicable).\n   - After S2T: present the word array clearly, reconstruct the full plain text sentence for readability, and note any timing gaps or silences.\n\n5. **Handle combined requests**: If the user asks for a full audio production (e.g. \"make me a podcast intro with voiceover and background music\"), call T2S and T2M separately and return both URLs clearly labelled.\n\n6. **Duration defaults**:\n   - Short clip / sound effect → 5–15 seconds\n   - Background music loop → 30–60 seconds\n   - Full track → 60–120 seconds\n   - Always ask if the user has a specific requirement.\n\n7. **Never fabricate URLs**: Only share audio URLs returned directly by the tools. Never guess or invent links.\n\n8. **Tone matching**: Match the voice and music style to the user's context:\n   - Children's story → warm gentle voice + soft playful music\n   - Corporate promo → confident neutral voice + professional background music\n   - Horror/thriller → slow dark voice + tense atmospheric music\n\n9. **S2T output formatting**: When presenting transcription results:\n   - Reconstruct and show the full plain text first as a clean readable block\n   - Then show the word-level array [{start_time-end_time: word}] in a code block\n   - Filter out filler words (hmm, uh, um) before presenting to the user\n   - Silences between words are visible from timing gaps — mention them if significant",
+          "passthroughBinaryImages": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        128,
+        -560
+      ],
+      "id": "dbec23db-9c33-47d3-8e50-0e4df68c89c8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "qwen3.5-0.8b",
+          "mode": "list",
+          "cachedResultName": "qwen3.5-0.8b"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        -304
+      ],
+      "id": "c8cb2841-13f5-4ae4-a32c-529811a23ef4",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "HpAJ5EBZHz4QQwoG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to CONVERT text into spoken audio.\n- Use when: User wants a voiceover, narration, podcast intro, announcement, character voice, or any human-sounding speech.\n- Inputs:\n  - speech: The exact text to be spoken aloud. Write it naturally as it should be heard — include punctuation for pacing. (e.g. \"Welcome to our platform. We're excited to have you here!\")\n  - voice: Must be one of the exact file paths below. Never use generic terms like \"male\" or \"female\" — always pass the full path.\n\n    🎙️ NARRATOR (default):\n    voices_examples/narrator.wav\n\n    👩 FEMALE — Indian Bengali Accent:\n     voices_examples/female\\in\\ba/amrita_ba.wav\n    voices_examples/female\\in\\ba/bhoomika_ba.wav\n    voices_examples/female\\in\\ba/devi_ba.wav\n    voices_examples/female\\in\\ba/isha_ba.wav\n    voices_examples/female\\in\\ba/nandini_ba.wav\n    voices_examples/female\\in\\ba/nikita_ba.wav\n\n    👨 MALE — Indian English Accent:\n    voices_examples/male\\in\\en/alex_en.wav\n    voices_examples/male\\in\\en/bala_en.wav\n    voices_examples/male\\in\\en/gaurav_en.wav\n    voices_examples/male\\in\\en/himanshu_en.wav\n    voices_examples/male\\in\\en/indrajeet_en.wav\n    voices_examples/male\\in\\en/nikhil_en.wav\n    voices_examples/male\\in\\en/ramesh_en.wav",
+        "workflowId": {
+          "__rl": true,
+          "value": "q11f0UV5Up3hURp9",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/q11f0UV5Up3hURp9",
+          "cachedResultName": "T2S"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "speech": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('speech', ``, 'string') }}",
+            "voice": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('voice', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "speech",
+              "displayName": "speech",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "voice",
+              "displayName": "voice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        -304
+      ],
+      "id": "99b41271-897e-47de-a90d-f9144300b3b5",
+      "name": "Call 'T2S'"
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to GENERATE background music, soundscapes, or sound effects from a description.\n- Use when: User wants background music, a jingle, ambient sound, sound effects, or any non-speech audio.\n- Inputs:\n  - soundDescription: A detailed description of the audio to generate. Include mood, genre, instruments, tempo, and use case. (e.g. \"Upbeat corporate background music with light piano and soft drums, suitable for a product promo video\", \"Dark cinematic orchestral tension music\", \"Relaxing lo-fi beats with rain ambience\", \"Sci-fi laser sound effect\")\n  - duration: Length of the audio in seconds. (e.g. 15, 30, 60). Default to 30 if not specified. Ask the user if context requires a specific length.",
+        "workflowId": {
+          "__rl": true,
+          "value": "T0SaqSpmSpuk4ntc",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/T0SaqSpmSpuk4ntc",
+          "cachedResultName": "T2M"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "soundDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('soundDescription', ``, 'string') }}",
+            "duration": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('duration', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "soundDescription",
+              "displayName": "soundDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "duration",
+              "displayName": "duration",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        336,
+        -304
+      ],
+      "id": "da391d95-e173-4d30-949d-a11d9b822680",
+      "name": "Call 'T2M'"
+    },
+    {
+      "parameters": {
+        "description": "Input: audioDownloadUrl - a direct download URL to a WAV or MP3 audio file.\nReturns: [{start_time-end_time: word}] Array\nUse this tool whenever you need to: transcribe spoken audio, extract speech content from audio files, analyse what was said in a recording, or convert audio to subtitles/SRT format.\nDo NOT use for music-only audio with no speech.",
+        "workflowId": {
+          "__rl": true,
+          "value": "4Q6VRlcGeptrdeKb",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4Q6VRlcGeptrdeKb",
+          "cachedResultName": "S2T"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "audioDownloadUrl": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('audioDownloadUrl', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "audioDownloadUrl"
+          ],
+          "schema": [
+            {
+              "id": "audioDownloadUrl",
+              "displayName": "audioDownloadUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        -304
+      ],
+      "id": "ad6bb20a-8132-46d0-903f-44502599df0e",
+      "name": "Call 'S2T'"
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"messageToAudioAgent\": \"\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -128,
+        -544
+      ],
+      "id": "a41377a3-c9c2-4ef8-b3ea-e9c373f2cc37",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Call 'T2S'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'T2M'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'S2T'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "09ea9774-8e59-47cb-a88c-8de1905c32de",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"
+  },
+  "id": "vzrFrvMoqOdSKBhN",
+  "tags": []
+}
