@@ -1,0 +1,236 @@
+{
+  "name": "IA2V",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n    \"videoDescription\": \"\",\n    \"imageUrl\": \"\",\n    \"audioUrl\": \"\"\n}"
+      },
+      "id": "b0e1a50f-14e9-4a5a-aeb5-fd67d80f497b",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "comfyUiUrl": "http://host.docker.internal:8188",
+        "workflowJson": "{\n  \"104\": {\n    \"inputs\": {\n      \"filename_prefix\": \"video/LTX-2\",\n      \"format\": \"auto\",\n      \"codec\": \"auto\",\n      \"video\": [\n        \"279:241\",\n        0\n      ]\n    },\n    \"class_type\": \"SaveVideo\",\n    \"_meta\": {\n      \"title\": \"Save Video\"\n    }\n  },\n  \"204\": {\n    \"inputs\": {\n      \"value\": \"one person talking in living room\"\n    },\n    \"class_type\": \"PrimitiveStringMultiline\",\n    \"_meta\": {\n      \"title\": \"Positive prompt\"\n    }\n  },\n  \"229\": {\n    \"inputs\": {\n      \"resize_type\": \"scale dimensions\",\n      \"resize_type.width\": 1024,\n      \"resize_type.height\": 576,\n      \"resize_type.crop\": \"disabled\",\n      \"scale_method\": \"lanczos\",\n      \"input\": [\n        \"309\",\n        0\n      ]\n    },\n    \"class_type\": \"ResizeImageMaskNode\",\n    \"_meta\": {\n      \"title\": \"Resize Image/Mask\"\n    }\n  },\n  \"309\": {\n    \"inputs\": {\n      \"image_url\": \"https://drive.usercontent.google.com/download?id=1pnGLe6lmlo6FNhR_d5B71jo3Cn3bfPrP&export=download&authuser=0&confirm=t&uuid=b2b6e12e-11f3-4fb8-b79d-2ce4802f4b8f&at=AGN2oQ3yE1QMKOAZ-b_JpUVuYNry:1772948037306\"\n    },\n    \"class_type\": \"LoadImageFromHttpURL\",\n    \"_meta\": {\n      \"title\": \"Load Image from HTTP URL\"\n    }\n  },\n  \"310\": {\n    \"inputs\": {\n      \"url\": \"https://drive.usercontent.google.com/download?id=1nBUfJFBlNIKlULr-besqGkBDpF3Sdvbm&export=download&authuser=0&confirm=t&uuid=63270420-f788-4370-92c0-ceb815a551c1&at=AGN2oQ1XusvipnpfcS4qDEc6pm-0:1772948071638\"\n    },\n    \"class_type\": \"MediaUtilities_AudioURLLoader\",\n    \"_meta\": {\n      \"title\": \"MediaUtilities_AudioURLLoader\"\n    }\n  },\n  \"279:234\": {\n    \"inputs\": {\n      \"frame_rate\": [\n        \"279:270\",\n        0\n      ],\n      \"positive\": [\n        \"279:250\",\n        0\n      ],\n      \"negative\": [\n        \"279:308\",\n        0\n      ]\n    },\n    \"class_type\": \"LTXVConditioning\",\n    \"_meta\": {\n      \"title\": \"LTXVConditioning\"\n    }\n  },\n  \"279:235\": {\n    \"inputs\": {\n      \"sampler_name\": \"euler_ancestral\"\n    },\n    \"class_type\": \"KSamplerSelect\",\n    \"_meta\": {\n      \"title\": \"KSamplerSelect\"\n    }\n  },\n  \"279:236\": {\n    \"inputs\": {\n      \"sigmas\": \"1., 0.99375, 0.9875, 0.98125, 0.975, 0.909375, 0.725, 0.421875, 0.0\"\n    },\n    \"class_type\": \"ManualSigmas\",\n    \"_meta\": {\n      \"title\": \"ManualSigmas\"\n    }\n  },\n  \"279:237\": {\n    \"inputs\": {\n      \"sigmas\": \"0.909375, 0.725, 0.421875, 0.0\"\n    },\n    \"class_type\": \"ManualSigmas\",\n    \"_meta\": {\n      \"title\": \"ManualSigmas\"\n    }\n  },\n  \"279:238\": {\n    \"inputs\": {\n      \"sampler_name\": \"euler_ancestral\"\n    },\n    \"class_type\": \"KSamplerSelect\",\n    \"_meta\": {\n      \"title\": \"KSamplerSelect\"\n    }\n  },\n  \"279:239\": {\n    \"inputs\": {\n      \"cfg\": 1,\n      \"model\": [\n        \"279:292\",\n        0\n      ],\n      \"positive\": [\n        \"279:234\",\n        0\n      ],\n      \"negative\": [\n        \"279:234\",\n        1\n      ]\n    },\n    \"class_type\": \"CFGGuider\",\n    \"_meta\": {\n      \"title\": \"CFGGuider\"\n    }\n  },\n  \"279:240\": {\n    \"inputs\": {\n      \"noise_seed\": 42\n    },\n    \"class_type\": \"RandomNoise\",\n    \"_meta\": {\n      \"title\": \"RandomNoise\"\n    }\n  },\n  \"279:241\": {\n    \"inputs\": {\n      \"fps\": [\n        \"279:270\",\n        0\n      ],\n      \"images\": [\n        \"279:245\",\n        0\n      ],\n      \"audio\": [\n        \"279:246\",\n        0\n      ]\n    },\n    \"class_type\": \"CreateVideo\",\n    \"_meta\": {\n      \"title\": \"Create Video\"\n    }\n  },\n  \"279:243\": {\n    \"inputs\": {\n      \"noise_seed\": 133425291735599\n    },\n    \"class_type\": \"RandomNoise\",\n    \"_meta\": {\n      \"title\": \"RandomNoise\"\n    }\n  },\n  \"279:245\": {\n    \"inputs\": {\n      \"tile_size\": 512,\n      \"overlap\": 64,\n      \"temporal_size\": 4096,\n      \"temporal_overlap\": 8,\n      \"samples\": [\n        \"279:247\",\n        0\n      ],\n      \"vae\": [\n        \"279:271\",\n        0\n      ]\n    },\n    \"class_type\": \"VAEDecodeTiled\",\n    \"_meta\": {\n      \"title\": \"VAE Decode (Tiled)\"\n    }\n  },\n  \"279:246\": {\n    \"inputs\": {\n      \"samples\": [\n        \"279:247\",\n        1\n      ],\n      \"audio_vae\": [\n        \"279:265\",\n        0\n      ]\n    },\n    \"class_type\": \"LTXVAudioVAEDecode\",\n    \"_meta\": {\n      \"title\": \"LTXV Audio VAE Decode\"\n    }\n  },\n  \"279:247\": {\n    \"inputs\": {\n      \"av_latent\": [\n        \"279:249\",\n        1\n      ]\n    },\n    \"class_type\": \"LTXVSeparateAVLatent\",\n    \"_meta\": {\n      \"title\": \"LTXVSeparateAVLatent\"\n    }\n  },\n  \"279:248\": {\n    \"inputs\": {\n      \"noise\": [\n        \"279:243\",\n        0\n      ],\n      \"guider\": [\n        \"279:252\",\n        0\n      ],\n      \"sampler\": [\n        \"279:235\",\n        0\n      ],\n      \"sigmas\": [\n        \"279:236\",\n        0\n      ],\n      \"latent_image\": [\n        \"279:267\",\n        0\n      ]\n    },\n    \"class_type\": \"SamplerCustomAdvanced\",\n    \"_meta\": {\n      \"title\": \"SamplerCustomAdvanced\"\n    }\n  },\n  \"279:249\": {\n    \"inputs\": {\n      \"noise\": [\n        \"279:240\",\n        0\n      ],\n      \"guider\": [\n        \"279:239\",\n        0\n      ],\n      \"sampler\": [\n        \"279:238\",\n        0\n      ],\n      \"sigmas\": [\n        \"279:237\",\n        0\n      ],\n      \"latent_image\": [\n        \"279:261\",\n        0\n      ]\n    },\n    \"class_type\": \"SamplerCustomAdvanced\",\n    \"_meta\": {\n      \"title\": \"SamplerCustomAdvanced\"\n    }\n  },\n  \"279:250\": {\n    \"inputs\": {\n      \"text\": [\n        \"204\",\n        0\n      ],\n      \"clip\": [\n        \"279:251\",\n        0\n      ]\n    },\n    \"class_type\": \"CLIPTextEncode\",\n    \"_meta\": {\n      \"title\": \"enhanced prompt (positive)\"\n    }\n  },\n  \"279:251\": {\n    \"inputs\": {\n      \"clip_name1\": \"gemma_3_12B_it_fp8_e4m3fn.safetensors\",\n      \"clip_name2\": \"ltx-2-19b-embeddings_connector_distill_bf16.safetensors\",\n      \"type\": \"ltxv\",\n      \"device\": \"default\"\n    },\n    \"class_type\": \"DualCLIPLoader\",\n    \"_meta\": {\n      \"title\": \"DualCLIPLoader\"\n    }\n  },\n  \"279:252\": {\n    \"inputs\": {\n      \"cfg\": 1,\n      \"model\": [\n        \"279:291\",\n        0\n      ],\n      \"positive\": [\n        \"279:234\",\n        0\n      ],\n      \"negative\": [\n        \"279:234\",\n        1\n      ]\n    },\n    \"class_type\": \"CFGGuider\",\n    \"_meta\": {\n      \"title\": \"CFGGuider\"\n    }\n  },\n  \"279:254\": {\n    \"inputs\": {\n      \"frames_number\": [\n        \"279:277\",\n        0\n      ],\n      \"frame_rate\": [\n        \"279:293\",\n        0\n      ],\n      \"batch_size\": 1,\n      \"audio_vae\": [\n        \"279:265\",\n        0\n      ]\n    },\n    \"class_type\": \"LTXVEmptyLatentAudio\",\n    \"_meta\": {\n      \"title\": \"LTXV Empty Latent Audio\"\n    }\n  },\n  \"279:255\": {\n    \"inputs\": {\n      \"width\": [\n        \"279:258\",\n        0\n      ],\n      \"height\": [\n        \"279:258\",\n        1\n      ],\n      \"batch_size\": 1,\n      \"color\": 0\n    },\n    \"class_type\": \"EmptyImage\",\n    \"_meta\": {\n      \"title\": \"EmptyImage\"\n    }\n  },\n  \"279:256\": {\n    \"inputs\": {\n      \"upscale_method\": \"lanczos\",\n      \"scale_by\": 0.5,\n      \"image\": [\n        \"279:255\",\n        0\n      ]\n    },\n    \"class_type\": \"ImageScaleBy\",\n    \"_meta\": {\n      \"title\": \"Upscale Image By\"\n    }\n  },\n  \"279:257\": {\n    \"inputs\": {\n      \"image\": [\n        \"279:256\",\n        0\n      ]\n    },\n    \"class_type\": \"GetImageSize\",\n    \"_meta\": {\n      \"title\": \"Get Image Size\"\n    }\n  },\n  \"279:258\": {\n    \"inputs\": {\n      \"image\": [\n        \"229\",\n        0\n      ]\n    },\n    \"class_type\": \"GetImageSize\",\n    \"_meta\": {\n      \"title\": \"Get Image Size\"\n    }\n  },\n  \"279:259\": {\n    \"inputs\": {\n      \"width\": [\n        \"279:257\",\n        0\n      ],\n      \"height\": [\n        \"279:257\",\n        1\n      ],\n      \"length\": [\n        \"279:277\",\n        0\n      ],\n      \"batch_size\": 1\n    },\n    \"class_type\": \"EmptyLTXVLatentVideo\",\n    \"_meta\": {\n      \"title\": \"EmptyLTXVLatentVideo\"\n    }\n  },\n  \"279:260\": {\n    \"inputs\": {\n      \"strength\": 1,\n      \"bypass\": false,\n      \"vae\": [\n        \"279:271\",\n        0\n      ],\n      \"image\": [\n        \"279:273\",\n        0\n      ],\n      \"latent\": [\n        \"279:259\",\n        0\n      ]\n    },\n    \"class_type\": \"LTXVImgToVideoInplace\",\n    \"_meta\": {\n      \"title\": \"LTXVImgToVideoInplace\"\n    }\n  },\n  \"279:261\": {\n    \"inputs\": {\n      \"video_latent\": [\n        \"279:263\",\n        0\n      ],\n      \"audio_latent\": [\n        \"279:266\",\n        1\n      ]\n    },\n    \"class_type\": \"LTXVConcatAVLatent\",\n    \"_meta\": {\n      \"title\": \"LTXVConcatAVLatent\"\n    }\n  },\n  \"279:262\": {\n    \"inputs\": {\n      \"model_name\": \"ltx-2-spatial-upscaler-x2-1.0.safetensors\"\n    },\n    \"class_type\": \"LatentUpscaleModelLoader\",\n    \"_meta\": {\n      \"title\": \"Load Latent Upscale Model\"\n    }\n  },\n  \"279:263\": {\n    \"inputs\": {\n      \"strength\": 1,\n      \"bypass\": false,\n      \"vae\": [\n        \"279:271\",\n        0\n      ],\n      \"image\": [\n        \"279:273\",\n        0\n      ],\n      \"latent\": [\n        \"279:264\",\n        0\n      ]\n    },\n    \"class_type\": \"LTXVImgToVideoInplace\",\n    \"_meta\": {\n      \"title\": \"LTXVImgToVideoInplace\"\n    }\n  },\n  \"279:264\": {\n    \"inputs\": {\n      \"samples\": [\n        \"279:266\",\n        0\n      ],\n      \"upscale_model\": [\n        \"279:262\",\n        0\n      ],\n      \"vae\": [\n        \"279:271\",\n        0\n      ]\n    },\n    \"class_type\": \"LTXVLatentUpsampler\",\n    \"_meta\": {\n      \"title\": \"spatial\"\n    }\n  },\n  \"279:265\": {\n    \"inputs\": {\n      \"vae_name\": \"LTX2_audio_vae_bf16.safetensors\",\n      \"device\": \"main_device\",\n      \"weight_dtype\": \"bf16\"\n    },\n    \"class_type\": \"VAELoaderKJ\",\n    \"_meta\": {\n      \"title\": \"VAELoader KJ\"\n    }\n  },\n  \"279:266\": {\n    \"inputs\": {\n      \"av_latent\": [\n        \"279:248\",\n        1\n      ]\n    },\n    \"class_type\": \"LTXVSeparateAVLatent\",\n    \"_meta\": {\n      \"title\": \"LTXVSeparateAVLatent\"\n    }\n  },\n  \"279:267\": {\n    \"inputs\": {\n      \"video_latent\": [\n        \"279:260\",\n        0\n      ],\n      \"audio_latent\": [\n        \"279:298\",\n        0\n      ]\n    },\n    \"class_type\": \"LTXVConcatAVLatent\",\n    \"_meta\": {\n      \"title\": \"LTXVConcatAVLatent\"\n    }\n  },\n  \"279:270\": {\n    \"inputs\": {\n      \"value\": 24\n    },\n    \"class_type\": \"PrimitiveFloat\",\n    \"_meta\": {\n      \"title\": \"Frame Rate (Float)\"\n    }\n  },\n  \"279:271\": {\n    \"inputs\": {\n      \"vae_name\": \"LTX2_video_vae_bf16.safetensors\"\n    },\n    \"class_type\": \"VAELoader\",\n    \"_meta\": {\n      \"title\": \"Load VAE\"\n    }\n  },\n  \"279:272\": {\n    \"inputs\": {\n      \"longer_edge\": 1536,\n      \"images\": [\n        \"229\",\n        0\n      ]\n    },\n    \"class_type\": \"ResizeImagesByLongerEdge\",\n    \"_meta\": {\n      \"title\": \"Resize Images by Longer Edge\"\n    }\n  },\n  \"279:273\": {\n    \"inputs\": {\n      \"img_compression\": 33,\n      \"image\": [\n        \"279:272\",\n        0\n      ]\n    },\n    \"class_type\": \"LTXVPreprocess\",\n    \"_meta\": {\n      \"title\": \"LTXVPreprocess\"\n    }\n  },\n  \"279:277\": {\n    \"inputs\": {\n      \"value\": 73\n    },\n    \"class_type\": \"PrimitiveInt\",\n    \"_meta\": {\n      \"title\": \"Length\"\n    }\n  },\n  \"279:275\": {\n    \"inputs\": {\n      \"unet_name\": \"ltx-2-19b-distilled_Q4_K_M.gguf\"\n    },\n    \"class_type\": \"UnetLoaderGGUF\",\n    \"_meta\": {\n      \"title\": \"Unet Loader (GGUF)\"\n    }\n  },\n  \"279:281\": {\n    \"inputs\": {\n      \"lora_name\": \"ltx-2-19b-ic-lora-depth-control.safetensors\",\n      \"strength_model\": 1,\n      \"model\": [\n        \"279:275\",\n        0\n      ]\n    },\n    \"class_type\": \"LoraLoaderModelOnly\",\n    \"_meta\": {\n      \"title\": \"Load LoRA\"\n    }\n  },\n  \"279:282\": {\n    \"inputs\": {\n      \"lora_name\": \"ltx-2-19b-ic-lora-detailer.safetensors\",\n      \"strength_model\": 1,\n      \"model\": [\n        \"279:289\",\n        0\n      ]\n    },\n    \"class_type\": \"LoraLoaderModelOnly\",\n    \"_meta\": {\n      \"title\": \"Load LoRA\"\n    }\n  },\n  \"279:283\": {\n    \"inputs\": {\n      \"lora_name\": \"ltx-2-19b-ic-lora-pose-control.safetensors\",\n      \"strength_model\": 1,\n      \"model\": [\n        \"279:288\",\n        0\n      ]\n    },\n    \"class_type\": \"LoraLoaderModelOnly\",\n    \"_meta\": {\n      \"title\": \"Load LoRA\"\n    }\n  },\n  \"279:284\": {\n    \"inputs\": {\n      \"lora_name\": \"ltx-2-19b-ic-lora-canny-control.safetensors\",\n      \"strength_model\": 1,\n      \"model\": [\n        \"279:286\",\n        0\n      ]\n    },\n    \"class_type\": \"LoraLoaderModelOnly\",\n    \"_meta\": {\n      \"title\": \"Load LoRA\"\n    }\n  },\n  \"279:286\": {\n    \"inputs\": {\n      \"switch\": true,\n      \"on_false\": [\n        \"279:275\",\n        0\n      ],\n      \"on_true\": [\n        \"279:281\",\n        0\n      ]\n    },\n    \"class_type\": \"ComfySwitchNode\",\n    \"_meta\": {\n      \"title\": \"Switch\"\n    }\n  },\n  \"279:288\": {\n    \"inputs\": {\n      \"switch\": true,\n      \"on_false\": [\n        \"279:286\",\n        0\n      ],\n      \"on_true\": [\n        \"279:284\",\n        0\n      ]\n    },\n    \"class_type\": \"ComfySwitchNode\",\n    \"_meta\": {\n      \"title\": \"Switch\"\n    }\n  },\n  \"279:289\": {\n    \"inputs\": {\n      \"switch\": true,\n      \"on_false\": [\n        \"279:288\",\n        0\n      ],\n      \"on_true\": [\n        \"279:283\",\n        0\n      ]\n    },\n    \"class_type\": \"ComfySwitchNode\",\n    \"_meta\": {\n      \"title\": \"Switch\"\n    }\n  },\n  \"279:290\": {\n    \"inputs\": {\n      \"switch\": true,\n      \"on_false\": [\n        \"279:289\",\n        0\n      ],\n      \"on_true\": [\n        \"279:282\",\n        0\n      ]\n    },\n    \"class_type\": \"ComfySwitchNode\",\n    \"_meta\": {\n      \"title\": \"Switch\"\n    }\n  },\n  \"279:291\": {\n    \"inputs\": {\n      \"switch\": false,\n      \"on_false\": [\n        \"279:275\",\n        0\n      ],\n      \"on_true\": [\n        \"279:290\",\n        0\n      ]\n    },\n    \"class_type\": \"ComfySwitchNode\",\n    \"_meta\": {\n      \"title\": \"Switch\"\n    }\n  },\n  \"279:292\": {\n    \"inputs\": {\n      \"switch\": true,\n      \"on_false\": [\n        \"279:275\",\n        0\n      ],\n      \"on_true\": [\n        \"279:290\",\n        0\n      ]\n    },\n    \"class_type\": \"ComfySwitchNode\",\n    \"_meta\": {\n      \"title\": \"Switch\"\n    }\n  },\n  \"279:293\": {\n    \"inputs\": {\n      \"a\": [\n        \"279:270\",\n        0\n      ]\n    },\n    \"class_type\": \"CM_FloatToInt\",\n    \"_meta\": {\n      \"title\": \"FloatToInt\"\n    }\n  },\n  \"279:297\": {\n    \"inputs\": {\n      \"audio\": [\n        \"279:302\",\n        0\n      ],\n      \"audio_vae\": [\n        \"279:265\",\n        0\n      ]\n    },\n    \"class_type\": \"LTXVAudioVAEEncode\",\n    \"_meta\": {\n      \"title\": \"LTXV Audio VAE Encode\"\n    }\n  },\n  \"279:298\": {\n    \"inputs\": {\n      \"switch\": true,\n      \"on_false\": [\n        \"279:254\",\n        0\n      ],\n      \"on_true\": [\n        \"279:306\",\n        0\n      ]\n    },\n    \"class_type\": \"ComfySwitchNode\",\n    \"_meta\": {\n      \"title\": \"Switch\"\n    }\n  },\n  \"279:302\": {\n    \"inputs\": {\n      \"start_index\": 0,\n      \"duration\": [\n        \"279:304\",\n        0\n      ],\n      \"audio\": [\n        \"310\",\n        0\n      ]\n    },\n    \"class_type\": \"TrimAudioDuration\",\n    \"_meta\": {\n      \"title\": \"Trim Audio Duration\"\n    }\n  },\n  \"279:303\": {\n    \"inputs\": {\n      \"a\": 73\n    },\n    \"class_type\": \"CM_IntToFloat\",\n    \"_meta\": {\n      \"title\": \"IntToFloat\"\n    }\n  },\n  \"279:304\": {\n    \"inputs\": {\n      \"op\": \"Div\",\n      \"a\": [\n        \"279:303\",\n        0\n      ],\n      \"b\": 24\n    },\n    \"class_type\": \"CM_FloatBinaryOperation\",\n    \"_meta\": {\n      \"title\": \"FloatBinaryOperation\"\n    }\n  },\n  \"279:305\": {\n    \"inputs\": {\n      \"value\": 0,\n      \"width\": [\n        \"279:257\",\n        0\n      ],\n      \"height\": [\n        \"279:257\",\n        1\n      ]\n    },\n    \"class_type\": \"SolidMask\",\n    \"_meta\": {\n      \"title\": \"SolidMask\"\n    }\n  },\n  \"279:306\": {\n    \"inputs\": {\n      \"samples\": [\n        \"279:297\",\n        0\n      ],\n      \"mask\": [\n        \"279:305\",\n        0\n      ]\n    },\n    \"class_type\": \"SetLatentNoiseMask\",\n    \"_meta\": {\n      \"title\": \"Set Latent Noise Mask\"\n    }\n  },\n  \"279:307\": {\n    \"inputs\": {\n      \"filename_prefix\": \"\",\n      \"images\": [\n        \"279:245\",\n        0\n      ]\n    },\n    \"class_type\": \"SaveImage\",\n    \"_meta\": {\n      \"title\": \"Save Image\"\n    }\n  },\n  \"279:308\": {\n    \"inputs\": {\n      \"text\": \"blurry, low resolution, distorted, painting, illustration, cartoon, anime, sketch, oversaturated, watermark, text, signature, distorted face, asymmetric features, extra limbs, deformed hands, blurry eyes, disfigured, low quality, bad anatomy, poorly drawn face, cluttered, busy background, distracting elements, multiple objects, messy, chaotic, excessive detail, noise, shaky, pixelated, compression artifacts, distorted motion, flickering, frame drops, poor lighting, artificial, computer-generated, synthetic, plastic, uncanny valley, overly smooth, fake, robotic\",\n      \"clip\": [\n        \"279:251\",\n        0\n      ]\n    },\n    \"class_type\": \"CLIPTextEncode\",\n    \"_meta\": {\n      \"title\": \"Negative Prompt\"\n    }\n  }\n}",
+        "nodeParameters": {
+          "nodeParameter": [
+            {
+              "nodeId": "204",
+              "paramName": "value",
+              "value": "={{ $json.videoDescription }}"
+            },
+            {
+              "nodeId": "309",
+              "paramName": "image_url",
+              "value": "={{ $json.imageUrl }}"
+            },
+            {
+              "nodeId": "310",
+              "paramName": "url",
+              "value": "={{ $json.audioUrl }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-comfyui-all.comfyUi",
+      "typeVersion": 1,
+      "position": [
+        496,
+        352
+      ],
+      "id": "f44cfd1e-b0e0-4fc6-acac-c55f8d02f99b",
+      "name": "ComfyUI"
+    },
+    {
+      "parameters": {
+        "name": "={{ $now.toMillis() }}.mp4",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1pq_QD320b1IgdH_SWjg1sbizcKBZ5w95",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1pq_QD320b1IgdH_SWjg1sbizcKBZ5w95"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        832,
+        352
+      ],
+      "id": "ae93dfe6-db2a-4362-98e6-7cba0911a807",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "JT66tyjz24e3EVsx",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "writer",
+            "type": "anyone",
+            "allowFileDiscovery": true
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1008,
+        352
+      ],
+      "id": "cca70ff8-4752-41a7-ae57-53bdface2e48",
+      "name": "Share file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "JT66tyjz24e3EVsx",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3d5f98c-4573-457a-a97a-1fac23e3449e",
+              "name": "videoUrl",
+              "value": "={{ $('Upload file').item.json.webContentLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        352
+      ],
+      "id": "6ef0dc68-ed6c-4a44-82bf-a7731471ebf5",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8188/api/view?filename={{ $json.data['104'].images[0].filename }}&type=output&subfolder={{ $json.data['104'].images[0].subfolder }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        352
+      ],
+      "id": "1619cac2-ef1c-498b-9489-12413c8cef3c",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "videoDescription": "a person playing in a very large park",
+          "imageUrl": "https://drive.usercontent.google.com/download?id=1pnGLe6lmlo6FNhR_d5B71jo3Cn3bfPrP&export=download&authuser=0&confirm=t&uuid=b2b6e12e-11f3-4fb8-b79d-2ce4802f4b8f&at=AGN2oQ3yE1QMKOAZ-b_JpUVuYNry:1772948037306",
+          "audioUrl": "https://drive.usercontent.google.com/download?id=1nBUfJFBlNIKlULr-besqGkBDpF3Sdvbm&export=download&authuser=0&confirm=t&uuid=63270420-f788-4370-92c0-ceb815a551c1&at=AGN2oQ1XusvipnpfcS4qDEc6pm-0:1772948071638"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "ComfyUI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ComfyUI": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Share file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Share file": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate"
+  },
+  "versionId": "ce0255ac-81e8-49c1-9837-b1e1c6a15337",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"
+  },
+  "id": "Ruvcjf35yNX7ASI3",
+  "tags": []
+}

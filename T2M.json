@@ -4,7 +4,7 @@
     {
       "parameters": {
         "inputSource": "jsonExample",
-        "jsonExample": "{\n    \"soundDescription\": \"\",\n    \"duration\": \"\"\n}"
+        "jsonExample": "{\n    \"soundDescription\": \"\",\n    \"duration\": 0\n}"
       },
       "id": "4339e40a-aba4-4fb7-81b0-3a865f10a185",
       "typeVersion": 1.1,
@@ -213,7 +213,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "binaryMode": "separate"
   },
-  "versionId": "398caa30-82f2-49b9-aa16-07ec92199907",
+  "versionId": "9105e6c6-763f-430f-bde4-6648cbf4380e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"

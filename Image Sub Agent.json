@@ -33,8 +33,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        96,
-        -320
+        0,
+        -304
       ],
       "id": "77a73d05-bb6f-41e8-ba82-f936127be3d7",
       "name": "OpenAI Chat Model",
@@ -293,7 +293,7 @@
     {
       "parameters": {
         "inputSource": "jsonExample",
-        "jsonExample": "{\n  \"messageToImageAgent\": \"\"\n}"
+        "jsonExample": "{\n  \"messageToImageAgent\": \"\",\n  \"sessionId\": \"\"\n}"
       },
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -303,6 +303,17 @@
       ],
       "id": "6d70ceed-c1cd-41dc-a5fd-a746696c2224",
       "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        160,
+        -304
+      ],
+      "id": "fcbfaf4f-7fcd-4051-b2ec-c560d83904da",
+      "name": "Simple Memory"
     }
   ],
   "pinData": {},
@@ -377,6 +388,17 @@
           }
         ]
       ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -385,7 +407,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "4e75bc21-899b-4f3e-bc97-3f6143ba9772",
+  "versionId": "782c070f-a265-410e-8388-1f4a5fd91f11",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"
