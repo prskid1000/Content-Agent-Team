@@ -3,6 +3,7 @@ docker run -d `
   --network n8n-net `
   -p 5678:5678 `
   -p 5679:5679 `
+  -e N8N_CORS_ALLOW_ORIGIN="*" `
   -e N8N_RUNNERS_ENABLED=true `
   -e N8N_RUNNERS_MODE=external `
   -e N8N_RUNNERS_AUTH_TOKEN=mysecrettoken `

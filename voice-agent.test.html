@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<!--
+  Voice Agent — local UI for n8n voice workflow.
+  CONFIG: Set N8N_BASE in the script below (e.g. http://127.0.0.1:5678 or your ngrok URL).
+  • Use /webhook/voice-agent/process (production). Not /webhook-test/.
+  • In n8n, turn the Voice Agent workflow ON (Active) or the webhook won't be registered.
+  CORS: For file://, run n8n with N8N_CORS_ALLOW_ORIGIN="*". Or serve via http (npx serve .).
+  See N8N-CORS-FIX.md for details.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07080d;
+    --surface: #0d0f18;
+    --border: rgba(255,255,255,0.06);
+    --blue: #3d7fff;
+    --cyan: #00d4ff;
+    --teal: #00ffcc;
+    --purple: #a855f7;
+    --red: #ff4560;
+    --text: #e2e8f8;
+    --muted: #4a5270;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(61,127,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(61,127,255,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  /* Ambient glow blobs */
+  .glow-a {
+    position: fixed;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(61,127,255,0.07) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    pointer-events: none;
+    animation: driftA 12s ease-in-out infinite alternate;
+  }
+  .glow-b {
+    position: fixed;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,212,255,0.05) 0%, transparent 70%);
+    bottom: -80px; right: -80px;
+    pointer-events: none;
+    animation: driftB 15s ease-in-out infinite alternate;
+  }
+  @keyframes driftA { from { transform: translate(0,0); } to { transform: translate(60px, 40px); } }
+  @keyframes driftB { from { transform: translate(0,0); } to { transform: translate(-40px, -60px); } }
+
+  /* MAIN CARD */
+  .card {
+    position: relative;
+    z-index: 10;
+    width: 340px;
+    background: rgba(13,15,24,0.8);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 36px 32px 32px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* Header */
+  .header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .header-left {
+    display: flex;
+    flex-direction: column;
+  }
+  .agent-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--blue);
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-bottom: 4px;
+  }
+  .agent-name {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 8px var(--teal);
+    animation: blink 2s ease-in-out infinite;
+  }
+  .status-dot.inactive { background: var(--muted); box-shadow: none; animation: none; }
+  .status-dot.busy { background: var(--blue); box-shadow: 0 0 8px var(--blue); animation: blink 0.6s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ORB */
+  .orb-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-bottom: 28px;
+    cursor: pointer;
+  }
+
+  canvas#orb {
+    width: 180px;
+    height: 180px;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(61,127,255,0.3));
+    transition: filter 0.4s;
+  }
+  canvas#orb.listening { filter: drop-shadow(0 0 30px rgba(0,212,255,0.5)); }
+  canvas#orb.speaking  { filter: drop-shadow(0 0 30px rgba(0,255,204,0.5)); }
+  canvas#orb.thinking  { filter: drop-shadow(0 0 25px rgba(168,85,247,0.4)); }
+
+  /* Tap label inside orb */
+  .orb-tap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.45);
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  /* Ripple rings */
+  .rings {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(61,127,255,0.2);
+    animation: ripple 3s ease-out infinite;
+    opacity: 0;
+  }
+  .ring:nth-child(1) { inset: -10px; animation-delay: 0s; }
+  .ring:nth-child(2) { inset: -22px; animation-delay: 0.8s; }
+  .ring:nth-child(3) { inset: -36px; animation-delay: 1.6s; }
+  @keyframes ripple {
+    0% { transform: scale(0.95); opacity: 0; }
+    30% { opacity: 0.6; }
+    100% { transform: scale(1.08); opacity: 0; }
+  }
+  .rings.active .ring { animation-duration: 1.4s; }
+  .rings.active .ring { border-color: rgba(0,212,255,0.3); }
+
+  /* STATE TEXT */
+  .state-text {
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 20px;
+    min-height: 18px;
+    text-align: center;
+    transition: color 0.3s;
+  }
+  .state-text.active { color: rgba(0,212,255,0.7); }
+  .state-text.speaking { color: rgba(0,255,204,0.7); }
+  .state-text.thinking { color: rgba(168,85,247,0.6); }
+
+  /* TRANSCRIPT BUBBLE */
+  .bubble {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 300;
+    line-height: 1.6;
+    color: rgba(200,215,255,0.7);
+    min-height: 52px;
+    margin-bottom: 20px;
+    transition: all 0.4s;
+    display: none;
+    text-align: left;
+  }
+  .bubble.show { display: block; }
+  .bubble .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  /* BOTTOM CONTROLS */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .btn-main {
+    width: 56px; height: 56px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #1a3a7a, #0d1f4a);
+    border: 1px solid rgba(61,127,255,0.3);
+    font-size: 22px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .btn-main:hover { transform: scale(1.05); border-color: rgba(61,127,255,0.6); }
+  .btn-main.recording {
+    background: linear-gradient(135deg, #3a1a2a, #1a0a18);
+    border-color: rgba(255,69,96,0.5);
+    animation: recPulse 1s ease-in-out infinite;
+  }
+  @keyframes recPulse { 0%,100%{box-shadow:0 8px 24px rgba(255,69,96,0.2)} 50%{box-shadow:0 8px 32px rgba(255,69,96,0.5)} }
+
+  .btn-sm {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    font-size: 16px;
+    color: var(--muted);
+  }
+  .btn-sm:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+  .btn-sm.on { background: rgba(255,69,96,0.1); border-color: rgba(255,69,96,0.3); color: var(--red); }
+
+  /* WAVEFORM BAR (listening visualizer) */
+  .waveform {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 24px;
+    margin-bottom: 16px;
+  }
+  .waveform.show { display: flex; }
+  .wbar {
+    width: 3px;
+    background: var(--cyan);
+    border-radius: 2px;
+    animation: wave 0.8s ease-in-out infinite alternate;
+    opacity: 0.8;
+  }
+  .wbar:nth-child(1) { animation-delay: 0s; height: 8px; }
+  .wbar:nth-child(2) { animation-delay: 0.1s; height: 16px; }
+  .wbar:nth-child(3) { animation-delay: 0.2s; height: 24px; }
+  .wbar:nth-child(4) { animation-delay: 0.15s; height: 18px; }
+  .wbar:nth-child(5) { animation-delay: 0.05s; height: 12px; }
+  .wbar:nth-child(6) { animation-delay: 0.25s; height: 20px; }
+  .wbar:nth-child(7) { animation-delay: 0.1s; height: 10px; }
+  @keyframes wave { from { transform: scaleY(0.4); } to { transform: scaleY(1); } }
+
+  /* UPLOAD PROGRESS */
+  .upload-hint {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    text-align: center;
+    margin-top: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .upload-hint.show { opacity: 1; }
+
+  /* ERROR TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: rgba(255,69,96,0.15);
+    border: 1px solid rgba(255,69,96,0.3);
+    color: #ff8099;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    transition: transform 0.3s ease;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="glow-a"></div>
+<div class="glow-b"></div>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <span class="agent-tag">n8n Agent</span>
+      <span class="agent-name">Voice Assistant</span>
+    </div>
+    <div class="status-dot inactive" id="statusDot"></div>
+  </div>
+
+  <!-- Orb -->
+  <div class="orb-container" onclick="handleOrbClick()">
+    <div class="rings" id="rings">
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+    </div>
+    <canvas id="orb" width="180" height="180"></canvas>
+    <div class="orb-tap" id="orbTap">tap to speak</div>
+  </div>
+
+  <!-- Waveform -->
+  <div class="waveform" id="waveform">
+    <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+    <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+    <div class="wbar"></div>
+  </div>
+
+  <!-- State -->
+  <div class="state-text" id="stateText">Ready to listen</div>
+
+  <!-- Transcript bubble: show AI reply text -->
+  <div class="bubble" id="bubble">
+    <div class="label" id="bubbleLabel">Agent replied</div>
+    <div id="bubbleText"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn btn-sm" id="muteBtn" onclick="toggleMute()" title="Mute">🎤</button>
+    <button class="btn btn-main" id="mainBtn" onclick="handleOrbClick()">🎙️</button>
+    <button class="btn btn-sm" onclick="endCall()" title="End">✕</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG — set your n8n base URL (workflow must be Active in n8n)
+// ══════════════════════════════════════════════
+const N8N_BASE = "http://127.0.0.1:5678";
+
+// Production webhook: POST audio here. Use /webhook/ not /webhook-test/.
+const VOICE_WEBHOOK = N8N_BASE + "/webhook-test/voice-agent/process";
+
+// Session ID: generated and sent from frontend only (one per page load). Workflow uses it for Memory.
+const SESSION_ID = crypto.randomUUID && crypto.randomUUID() || 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2, 11);
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let appState = 'idle'; // idle | listening | thinking | speaking
+let mediaRecorder = null;
+let audioChunks = [];
+let muted = false;
+let currentAudio = null;
+let animFrame;
+let phase = 0;
+// Conversation context for the agent: [{ role: 'user'|'assistant', text }, ...]
+let conversationHistory = [];
+
+// ══════════════════════════════════════════════
+// ORB CANVAS
+// ══════════════════════════════════════════════
+const canvas = document.getElementById('orb');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height, CX = W/2, CY = H/2;
+
+const COLORS = {
+  idle:      { core: ['rgba(40,80,180,0.9)', 'rgba(15,30,90,0.85)', 'rgba(5,10,30,0.9)'],    blade: [80,160,255],  speed: 0.6 },
+  listening: { core: ['rgba(0,180,255,0.95)', 'rgba(0,80,160,0.9)', 'rgba(0,10,40,0.9)'],   blade: [0,220,255],   speed: 1.8 },
+  thinking:  { core: ['rgba(130,60,240,0.95)', 'rgba(60,20,160,0.9)', 'rgba(10,5,40,0.9)'], blade: [180,100,255], speed: 2.5 },
+  speaking:  { core: ['rgba(0,220,170,0.95)', 'rgba(0,120,100,0.9)', 'rgba(0,25,25,0.9)'],  blade: [0,255,180],   speed: 1.4 },
+};
+
+function drawOrb(t) {
+  ctx.clearRect(0, 0, W, H);
+  const R = 78;
+  const c = COLORS[appState] || COLORS.idle;
+  const [r,g,b] = c.blade;
+
+  // Base sphere
+  const grad = ctx.createRadialGradient(CX-22, CY-22, 6, CX, CY, R);
+  grad.addColorStop(0, c.core[0]);
+  grad.addColorStop(0.55, c.core[1]);
+  grad.addColorStop(1, c.core[2]);
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, 0, Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Blades
+  const bladeCount = appState === 'speaking' ? 10 : appState === 'listening' ? 8 : 6;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, 0, Math.PI*2);
+  ctx.clip();
+
+  for (let i = 0; i < bladeCount; i++) {
+    const angle = (i / bladeCount) * Math.PI * 2 + t * c.speed;
+    const len = R * (0.55 + 0.35 * Math.sin(t * 1.8 + i * 1.1));
+    const wid = R * (0.15 + 0.10 * Math.sin(t * 0.9 + i * 0.6));
+    const alpha = 0.18 + 0.18 * Math.sin(t * 1.3 + i);
+
+    ctx.save();
+    ctx.translate(CX, CY);
+    ctx.rotate(angle);
+    const g2 = ctx.createLinearGradient(0, 0, len, 0);
+    g2.addColorStop(0, 'rgba('+r+','+g+','+b+','+(alpha+0.15)+')');
+    g2.addColorStop(1, 'rgba('+r+','+g+','+b+',0)');
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.ellipse(len/2, 0, len/2, wid, 0, 0, Math.PI*2);
+    ctx.fillStyle = g2;
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+
+  // Gloss
+  const gloss = ctx.createRadialGradient(CX-25, CY-25, 0, CX-15, CY-15, R*0.72);
+  gloss.addColorStop(0, 'rgba(255,255,255,0.20)');
+  gloss.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+  gloss.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, 0, Math.PI*2);
+  ctx.fillStyle = gloss;
+  ctx.fill();
+
+  // Rim light
+  const rim = ctx.createRadialGradient(CX, CY, R*0.7, CX, CY, R);
+  rim.addColorStop(0, 'rgba(0,0,0,0)');
+  rim.addColorStop(1, 'rgba('+r+','+g+','+b+',0.15)');
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, 0, Math.PI*2);
+  ctx.fillStyle = rim;
+  ctx.fill();
+}
+
+function animate() {
+  phase += 0.012;
+  drawOrb(phase);
+  animFrame = requestAnimationFrame(animate);
+}
+animate();
+
+// ══════════════════════════════════════════════
+// STATE MANAGEMENT
+// ══════════════════════════════════════════════
+function setState(s) {
+  appState = s;
+  const dot = document.getElementById('statusDot');
+  const stateEl = document.getElementById('stateText');
+  const tap = document.getElementById('orbTap');
+  const rings = document.getElementById('rings');
+  const wave = document.getElementById('waveform');
+  const mainBtn = document.getElementById('mainBtn');
+  const orbCanvas = document.getElementById('orb');
+
+  // Reset classes
+  dot.className = 'status-dot';
+  stateEl.className = 'state-text';
+  orbCanvas.className = '';
+  rings.className = 'rings';
+  wave.className = 'waveform';
+
+  if (s === 'idle') {
+    dot.classList.add('inactive');
+    stateEl.textContent = 'Ready to listen';
+    tap.textContent = 'tap to speak';
+    mainBtn.textContent = '🎙️';
+    mainBtn.classList.remove('recording');
+  } else if (s === 'listening') {
+    dot.classList.add('busy');
+    stateEl.classList.add('active');
+    stateEl.textContent = 'Listening…';
+    tap.textContent = 'tap to stop';
+    orbCanvas.classList.add('listening');
+    rings.classList.add('active');
+    wave.classList.add('show');
+    mainBtn.textContent = '⏹';
+    mainBtn.classList.add('recording');
+  } else if (s === 'thinking') {
+    stateEl.classList.add('thinking');
+    stateEl.textContent = 'Thinking…';
+    tap.textContent = '';
+    orbCanvas.classList.add('thinking');
+    mainBtn.textContent = '⏳';
+    mainBtn.classList.remove('recording');
+  } else if (s === 'speaking') {
+    stateEl.classList.add('speaking');
+    stateEl.textContent = 'Speaking…';
+    tap.textContent = 'tap to interrupt';
+    orbCanvas.classList.add('speaking');
+    rings.classList.add('active');
+    mainBtn.textContent = '⏸';
+    mainBtn.classList.remove('recording');
+  }
+}
+
+// ══════════════════════════════════════════════
+// BUBBLE — show AI reply transcript
+// ══════════════════════════════════════════════
+function showBubble(label, text) {
+  const b = document.getElementById('bubble');
+  document.getElementById('bubbleLabel').textContent = label;
+  document.getElementById('bubbleText').textContent = text || '';
+  b.classList.add('show');
+}
+function hideBubble() {
+  document.getElementById('bubble').classList.remove('show');
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ══════════════════════════════════════════════
+// AUDIO RECORDING
+// ══════════════════════════════════════════════
+async function startListening() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      processVoice();
+    };
+    mediaRecorder.start(100);
+    setState('listening');
+    hideBubble();
+  } catch(err) {
+    const em = (err && err.name) ? err.name + (err.message ? ': ' + err.message : '') : 'Microphone denied';
+    showToast(em + ' — Try Edge flag or Chrome (see instructions).');
+  }
+}
+
+function stopListening() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    setState('thinking');
+  }
+}
+
+// ══════════════════════════════════════════════
+// PROCESS: send audio → n8n webhook → play response
+// ══════════════════════════════════════════════
+async function processVoice() {
+  const blob = new Blob(audioChunks, { type: 'audio/webm' });
+  const formData = new FormData();
+  formData.append('audio', blob, 'recording.webm');
+  formData.append('sessionId', SESSION_ID);
+  formData.append('context', JSON.stringify(conversationHistory));
+
+  try {
+    const res = await fetch(VOICE_WEBHOOK, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error('Webhook returned ' + res.status);
+    const data = await res.json();
+
+    // Show AI reply transcript immediately
+    const aiText = data.responseText || data.transcript || '';
+    if (aiText) {
+      showBubble('Agent replied', aiText);
+    }
+
+    // Append this turn to conversation context for next request
+    const userSaid = data.transcript || '';
+    if (userSaid || aiText) {
+      if (userSaid) conversationHistory.push({ role: 'user', text: userSaid });
+      if (aiText) conversationHistory.push({ role: 'assistant', text: aiText });
+    }
+
+    // Play from base64 (no Drive URL = no tracking block, no storage). Just play and forget.
+    if (data.audioBase64) {
+      setState('speaking');
+      try {
+        const bin = Uint8Array.from(atob(data.audioBase64), c => c.charCodeAt(0));
+        const blob = new Blob([bin], { type: 'audio/mpeg' });
+        const blobUrl = URL.createObjectURL(blob);
+        currentAudio = new Audio(blobUrl);
+        currentAudio.onended = () => { setState('idle'); URL.revokeObjectURL(blobUrl); };
+        currentAudio.onerror = () => { showToast('Could not play audio.'); setState('idle'); URL.revokeObjectURL(blobUrl); };
+        currentAudio.play();
+      } catch (e) {
+        showToast('Could not play audio.');
+        setState('idle');
+      }
+    } else {
+      const audioUrl = data.audioUrl || data.imageUrl;
+      if (audioUrl) {
+        setState('speaking');
+        currentAudio = new Audio(audioUrl);
+        currentAudio.onended = () => setState('idle');
+        currentAudio.onerror = () => { showToast('Could not load audio.'); setState('idle'); };
+        currentAudio.play();
+      } else {
+        setState('idle');
+        if (!aiText) hideBubble();
+      }
+    }
+
+  } catch(err) {
+    showToast('Error: ' + err.message);
+    setState('idle');
+  }
+}
+
+// ══════════════════════════════════════════════
+// CONTROLS
+// ══════════════════════════════════════════════
+function handleOrbClick() {
+  if (appState === 'idle') {
+    startListening();
+  } else if (appState === 'listening') {
+    stopListening();
+  } else if (appState === 'speaking') {
+    // Interrupt
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    startListening();
+  }
+  // ignore clicks during 'thinking'
+}
+
+function toggleMute() {
+  muted = !muted;
+  const btn = document.getElementById('muteBtn');
+  btn.classList.toggle('on', muted);
+  btn.textContent = muted ? '🔇' : '🎤';
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    // visual only — actual mute needs AudioContext for full implementation
+  }
+}
+
+function endCall() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  hideBubble();
+  setState('idle');
+}
+</script>
+</body>
+</html>
