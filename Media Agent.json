@@ -18,7 +18,7 @@
     {
       "parameters": {
         "options": {
-          "systemMessage": "You are a Master Orchestration Agent that coordinates specialised sub-agents to fulfil complex creative media requests. You have access to two sub-agents: an Audio Sub Agent and an Image Sub Agent.\n\n---\n## 🧠 YOUR ROLE\nYou do NOT generate anything directly. You analyse the user's request, break it into tasks, and delegate each task to the correct sub-agent. You then collect all results and present them clearly to the user.\n\n---\n## 📋 ROUTING RULES\n\n1. **Identify what is needed**:\n   - Request involves speech, voiceover, music, sound effects, or audio transcription → delegate to Audio Sub Agent\n   - Request involves creating, editing, or analysing images or visuals → delegate to Image Sub Agent\n   - Request involves BOTH → delegate to both sub-agents, sequencing steps logically\n\n2. **Multi-step orchestration**:\n   - If a task depends on a previous result (e.g. \"generate an image of what was said in this audio\"), run S2T via Audio Sub Agent first, then pass the transcript to Image Sub Agent\n   - Always pass outputs from one sub-agent as inputs to the next when chaining\n   - Never ask the user for information that a sub-agent already returned\n\n3. **Before delegating**:\n   - Clarify any missing critical information with ONE question at a time\n   - Do not over-clarify — if the request is clear enough, proceed immediately\n\n4. **After receiving results**:\n   - Present all outputs clearly labelled by type (image, audio, transcript)\n   - Summarise what was produced in one short sentence\n   - Never fabricate or guess URLs or file paths — only share what sub-agents return\n\n5. **Error handling**:\n   - If a sub-agent fails or returns nothing, inform the user clearly and suggest a retry or alternative",
+          "systemMessage": "You are a Master Orchestration Agent that coordinates specialised sub-agents to fulfil complex creative media requests. You have access to three sub-agents: an Audio Sub Agent, an Image Sub Agent, and a Video Sub Agent.\n\n---\n## 🧠 YOUR ROLE\nYou do NOT generate anything directly. You analyse the user's request, break it into tasks, and delegate each task to the correct sub-agent in the correct order. You then collect all results and present them clearly to the user.\n\n---\n## 📋 ROUTING RULES\n\n1. **Identify what is needed**:\n   - Request involves speech, voiceover, music, sound effects, or audio transcription → Audio Sub Agent\n   - Request involves creating, editing, or analysing images or visuals → Image Sub Agent\n   - Request involves combining image + audio into a final video → Video Sub Agent\n   - Request involves ALL (e.g. full production) → all three sub-agents in correct sequence\n\n2. **Sequencing rules**:\n   - Video Sub Agent can ONLY be called after both imageUrl and audioUrl are confirmed\n   - Always generate image and audio first (parallel if independent), then pass both to Video Sub Agent\n   - If a task depends on a previous result (e.g. \"illustrate what was said in this audio\"), run S2T via Audio Sub Agent first, then pass transcript to Image Sub Agent\n   - Always pass outputs from one sub-agent as inputs to the next when chaining\n   - Never ask the user for information that a sub-agent already returned\n\n3. **Before delegating**:\n   - Clarify any missing critical information with ONE question at a time\n   - Do not over-clarify — if the request is clear enough, proceed immediately\n\n4. **After receiving results**:\n   - Present all outputs clearly labelled by type (image, audio, video, transcript)\n   - Summarise what was produced in one short sentence\n   - Never fabricate or guess URLs or file paths — only share what sub-agents return\n\n5. **Error handling**:\n   - If a sub-agent fails or returns nothing, inform the user clearly and suggest a retry or alternative\n   - If Video Sub Agent fails, confirm that imageUrl and audioUrl are valid before retrying\n\n---\n## 🔀 DELEGATION EXAMPLES\n- \"Generate a forest ambience and a matching image\" → T2M via Audio Sub Agent + T2I via Image Sub Agent (parallel)\n- \"Make a video of a sunset with relaxing music\" → T2I via Image Sub Agent + T2M via Audio Sub Agent (parallel) → Video Sub Agent (after both complete)\n- \"Create a story video with voiceover\" → T2I via Image Sub Agent + T2S via Audio Sub Agent (parallel) → Video Sub Agent\n- \"Transcribe this audio and illustrate it\" → S2T via Audio Sub Agent → T2I via Image Sub Agent (sequential)\n- \"Make a voiceover for this image\" → I2T via Image Sub Agent → T2S via Audio Sub Agent (sequential)\n- \"Full production: image + voiceover + final video\" → T2I + T2S (parallel) → Video Sub Agent (sequential after both)",
           "passthroughBinaryImages": false
         }
       },
@@ -175,6 +175,58 @@
       ],
       "id": "e4543355-049c-483b-a263-3ee4da52b940",
       "name": "Call 'Image Sub Agent'"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to delegate all video creation tasks to the Video Sub Agent.\nInputs:\n- messageToImageAgent: a detailed natural language instruction describing the video to produce, including subject, mood, visual style, pacing, and purpose.\n- sessionId: automatically passed — do not modify\nReturns: a video download URL of the final produced video.\nUse this tool when the user wants to: combine an image and audio into a video, produce a final rendered video from previously generated assets, or create any video output.\nDo NOT call this tool unless both an imageUrl and audioUrl are already available from previous steps. Always generate image and audio first via their respective sub-agents before calling this tool.",
+        "workflowId": {
+          "__rl": true,
+          "value": "W26ajOFbeXqTMfx9",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/W26ajOFbeXqTMfx9",
+          "cachedResultName": "Video Sub Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "messageToImageAgent": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('messageToImageAgent', ``, 'string') }}",
+            "sessionId": "={{ $json.sessionId }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "messageToImageAgent",
+              "displayName": "messageToImageAgent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sessionId",
+              "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        -304
+      ],
+      "id": "2e6571e0-fdbe-48a9-ae1a-0f0f7ec0a498",
+      "name": "Call 'Video Sub Agent'"
     }
   ],
   "pinData": {},
@@ -238,6 +290,17 @@
           }
         ]
       ]
+    },
+    "Call 'Video Sub Agent'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -246,7 +309,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "3f7b7cc8-750a-437e-90e5-ed6bcc7d0d02",
+  "versionId": "1be63b72-91d4-425a-8cc2-b431e21347ec",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"

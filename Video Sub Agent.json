@@ -1,0 +1,202 @@
+{
+  "name": "Video Sub Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messageToImageAgent }}",
+        "options": {
+          "systemMessage": "You are an advanced AI Image Operations Agent capable of creating, editing, and analysing images using a suite of specialised tools. Your job is to understand the user's intent and execute the right sequence of image operations to perfectly fulfil their request.\n---\n## 📋 BEHAVIOUR RULES\n\n1. **Always analyse after generating/editing**: After every T2I, I2I, or 2xI2I call, immediately call I2T to verify the result matches user requirements. If it does not match, iterate and try again with improved instructions.\n\n2. **Ask before assuming**: If the user's request is ambiguous (e.g. they say \"fix my image\" without specifying how), ask one clarifying question before proceeding.\n\n3. **Iterate until perfect**: Keep refining with improved prompts until the output satisfies the user. Maximum 3 iterations before asking the user for further guidance.\n\n4. **Describe your steps**: Briefly tell the user what you are about to do before calling a tool (e.g. \"I'll generate a 16:9 image of your description now...\").\n\n5. **Share the result**: After a successful operation, present the image download URL clearly and summarise what was done.\n\n6. **Aspect ratio defaults**:\n   - Portrait content (people, mobile wallpapers) → 9:16\n   - Landscape content (scenes, banners) → 16:9\n   - Social media/profile / general → 1:1\n   - If the user specifies dimensions, map to the nearest ratio.\n\n7. **Never fabricate URLs**: Only use image URLs returned directly by tools. Never invent or guess URLs.",
+          "passthroughBinaryImages": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        128,
+        -464
+      ],
+      "id": "35482f7b-348b-4774-8e6b-300cabae1b17",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "qwen3.5-0.8b",
+          "mode": "list",
+          "cachedResultName": "qwen3.5-0.8b"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -304
+      ],
+      "id": "8a15f4dc-9a55-4fe5-b776-e5ad136b3fb8",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "HpAJ5EBZHz4QQwoG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"messageToImageAgent\": \"\",\n  \"sessionId\": \"\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        -464
+      ],
+      "id": "08bc5161-bccf-4594-8e9d-238b5ebb6249",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        160,
+        -304
+      ],
+      "id": "a6156a5f-267e-4bc4-ad5d-3fac514a478c",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to combine an image and audio into a video.\nInputs:\n- videoDescription: detailed description of the video — include subject, mood, visual style, pacing, purpose, and any motion or transition effects desired\n- imageUrl: reference URL of the image to use as the video visual (must already exist)\n- audioUrl: reference URL of the audio to use as the video soundtrack or voiceover (must already exist)\nReturns: a video download URL.\nUse this tool when the user wants to produce a final video from an already-generated or provided image and audio.\nDo NOT call this tool unless both imageUrl and audioUrl are already available — always generate or confirm them first.",
+        "workflowId": {
+          "__rl": true,
+          "value": "Ruvcjf35yNX7ASI3",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Ruvcjf35yNX7ASI3",
+          "cachedResultName": "IA2V"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "videoDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('videoDescription', ``, 'string') }}",
+            "imageUrl": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('imageUrl', ``, 'string') }}",
+            "audioUrl": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('audioUrl', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "videoDescription",
+              "displayName": "videoDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "imageUrl",
+              "displayName": "imageUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "audioUrl",
+              "displayName": "audioUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        -304
+      ],
+      "id": "4a66edf1-ac71-4292-9787-0516d6f15ee5",
+      "name": "Call 'IA2V'"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'IA2V'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "198b37ac-3da5-424b-ab8c-51f62f4fe801",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2e09283f478cd834772a34f4ac4028fa5cf1781633c3585e0d09fb8125b6c9a7"
+  },
+  "id": "W26ajOFbeXqTMfx9",
+  "tags": []
+}
